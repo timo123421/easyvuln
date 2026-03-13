@@ -1,5 +1,5 @@
 🛡️ SecureScan Pro: AI-Powered SAST & Triage Suite
-SecureScan Pro is a high-performance, browser-based Static Application Security Testing (SAST) tool. It leverages State-of-the-Art (SOTA) LLMs—including Gemini 1.5 Pro, GPT-4o, and Claude 3.7 Sonnet—to perform deep contextual analysis of entire codebases, identify vulnerabilities, and provide a live triage workflow.
+SecureScan Pro is a high-performance, browser-based Static Application Security Testing (SAST) tool. It leverages State-of-the-Art (SOTA) LLMs—including Gemini 3.1 Pro, GPT-5.3, and Claude 3.7 Sonnet—to perform deep contextual analysis of entire codebases, identify vulnerabilities, and provide a live triage workflow.
 
 🚀 Key Features
 Multi-Engine Support: Switch between Google Gemini, OpenAI (including o1-preview), and Anthropic models seamlessly.
@@ -30,7 +30,6 @@ Simply open the index.html file in any modern web browser (Chrome or Edge recomm
 Configure Engine: Select your preferred AI model and paste your API key into the secure input field.
 
 Load Code:
-
 Click "Map Project Directory" to select your entire source code folder.
 SecureScan Pro will index all relevant files (.js, .py, .java, .go, etc.) into the local memory buffer.
 Run Audit: Click "Initiate System Audit".
