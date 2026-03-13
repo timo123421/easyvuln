@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureScan Pro | v5.0 Persistence Suite</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #0052cc; --bg: #f4f5f7; --text: #172b4d;
+            --critical: #de350b; --high: #ff8b00; --medium: #ffc400; --low: #00875a;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
+        .row { display: flex; gap: 20px; margin-bottom: 1.5rem; }
+        .col { flex: 1; }
+        
+        label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.75rem; color: #5e6c84; text-transform: uppercase; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; background: white; }
+        
+        .file-box { border: 2px dashed #dfe1e6; padding: 20px; text-align: center; border-radius: 8px; background: #fafbfc; transition: 0.3s; }
+        .file-box:hover { border-color: var(--primary); }
+
+        #dashboard { display: none; margin-top: 2rem; }
+        .chart-container { height: 220px; margin-bottom: 1.5rem; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; background: #f4f5f7; padding: 12px; font-size: 0.85rem; }
+        td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.7rem; }
+        .bg-crit { background: var(--critical); } .bg-high { background: var(--high); }
+        .bg-med { background: var(--medium); } .bg-low { background: var(--low); }
+
+        button { background: var(--primary); color: white; border: none; padding: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%; }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        button.secondary { background: #ebecf0; color: #172b4d; margin-top: 10px; border: 1px solid #ccc; }
+        
+        #output { margin-top: 2rem; padding: 20px; background: #1a1a1a; color: #d4d4d4; border-radius: 8px; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.5; border-left: 5px solid var(--primary); }
+        .save-toast { position: fixed; bottom: 20px; right: 20px; background: var(--low); color: white; padding: 10px 20px; border-radius: 5px; display: none; }
+    </style>
+</head>
+<body onload="loadSession()">
+
+<div class="container">
+    <div class="header">
+        <h2>🛡️ SecureScan Pro <small style="font-size: 0.5em; opacity: 0.6;">v5.0 Persistence</small></h2>
+        <div id="statusIndicator" style="font-size: 0.8rem; font-weight: bold;">STANDBY</div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <label>Intelligence Engine (2026 SOTA)</label>
+            <select id="provider" onchange="saveSession()">
+                <option value="google">Gemini 1.5 Pro (Extreme Context)</option>
+                <option value="openai">GPT-4o (Peak Logic)</option>
+                <option value="anthropic">Claude 3.7 Sonnet (Advanced Coding)</option>
+                <option value="openai-o1">GPT-o1 (Deep Reasoning)</option>
+            </select>
+        </div>
+        <div class="col" style="flex: 2;">
+            <label>Secure API Key</label>
+            <input type="password" id="apiKey" placeholder="Paste Key..." oninput="saveSession()">
+        </div>
+    </div>
+
+    <div class="file-box">
+        <button class="secondary" style="width: auto; padding: 8px 15px;" onclick="selectFolder()">📁 Index Project Directory</button>
+        <div id="fileList" style="margin-top: 8px; font-size: 0.75rem; color: #888;">No directory loaded into memory.</div>
+    </div>
+
+    <button id="scanBtn" style="margin-top: 1.5rem; font-size: 1.1rem;" onclick="runProjectScan()">🚀 RUN ENTERPRISE AUDIT</button>
+
+    <div id="dashboard">
+        <div class="row">
+            <div class="col" style="flex: 1.5;">
+                <label>Vulnerability Matrix</label>
+                <div class="chart-container"><canvas id="riskChart"></canvas></div>
+            </div>
+            <div class="col">
+                <label>Report Management</label>
+                <button onclick="downloadPDF()" style="background: var(--low);">📥 Generate PDF Report</button>
+                <button class="secondary" onclick="copyToClipboard()">📋 Copy Raw Results</button>
+                <button class="secondary" onclick="clearSession()" style="color: var(--critical);">🗑️ Reset Session</button>
+            </div>
+        </div>
+
+        <div id="triageSection">
+            <label>Live Triage Workflow</label>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="50">Fix</th>
+                        <th width="100">Level</th>
+                        <th>Vulnerability Name</th>
+                        <th>Component Path</th>
+                    </tr>
+                </thead>
+                <tbody id="triageBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="output">Console output is ready...</div>
+</div>
+
+<div id="toast" class="save-toast">Session Auto-Saved</div>
+
+<script>
+    let projectContent = "";
+    let lastScanResult = "";
+    let riskChart = null;
+
+    // --- SESSION MANAGEMENT ---
+    function saveSession() {
+        const sessionData = {
+            apiKey: document.getElementById('apiKey').value,
+            provider: document.getElementById('provider').value,
+            lastResult: lastScanResult,
+            triageStates: Array.from(document.querySelectorAll('#triageBody input')).map(i => i.checked)
+        };
+        localStorage.setItem('secureScanSession', JSON.stringify(sessionData));
+        showToast();
+    }
+
+    function loadSession() {
+        const saved = localStorage.getItem('secureScanSession');
+        if (!saved) return;
+        const data = JSON.parse(saved);
+        document.getElementById('apiKey').value = data.apiKey || "";
+        document.getElementById('provider').value = data.provider || "google";
+        if (data.lastResult) {
+            lastScanResult = data.lastResult;
+            document.getElementById('output').textContent = lastScanResult;
+            parseFindings(lastScanResult);
+            // Restore checkbox states
+            const checks = document.querySelectorAll('#triageBody input');
+            data.triageStates.forEach((state, i) => { if(checks[i]) checks[i].checked = state; });
+        }
+    }
+
+    function clearSession() {
+        if(confirm("Clear all results and API keys?")) {
+            localStorage.removeItem('secureScanSession');
+            location.reload();
+        }
+    }
+
+    function showToast() {
+        const t = document.getElementById('toast');
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 2000);
+    }
+
+    // --- CORE LOGIC ---
+    async function selectFolder() {
+        try {
+            const dirHandle = await window.showDirectoryPicker();
+            projectContent = "";
+            document.getElementById('fileList').innerText = "Parsing project files...";
+            await readDirectory(dirHandle, "");
+            document.getElementById('fileList').innerHTML = `<b style="color:var(--low)">SUCCESS: Project mapped and cached.</b>`;
+        } catch (err) { if(err.name !== 'AbortError') alert(err.message); }
+    }
+
+    async function readDirectory(dirHandle, path) {
+        const EXCLUDED = ['node_modules', '.git', 'dist', '.env'];
+        for await (const entry of dirHandle.values()) {
+            if (EXCLUDED.includes(entry.name)) continue;
+            const fullPath = path + entry.name;
+            if (entry.kind === 'file') {
+                const file = await entry.getFile();
+                const text = await file.text();
+                projectContent += `\n[SOURCE: ${fullPath}]\n${text}\n[END]\n`;
+            } else { await readDirectory(entry, fullPath + "/"); }
+        }
+    }
+
+    async function runProjectScan() {
+        const provider = document.getElementById('provider').value;
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const outputDiv = document.getElementById('output');
+        const btn = document.getElementById('scanBtn');
+
+        if (!apiKey || !projectContent) return alert("Required: API Key + Mapped Folder.");
+
+        btn.disabled = true;
+        document.getElementById('statusIndicator').innerText = "SCANNING...";
+        outputDiv.innerText = "Connecting to Engine... Simulating attack vectors...";
+
+        const systemPrompt = `Role: Senior Cyber Security Architect. 
+        Perform Deep SAST. Use specific format for every finding:
+        FINDING: [SEVERITY] - Title
+        COMPONENT: File Path/Context
+        Description: Brief detail
+        ---
+        Severities: [CRITICAL], [HIGH], [MEDIUM], [LOW]. 
+        Check logic, secrets, and OWASP. Temperature: 0.1.`;
+
+        try {
+            let apiUrl, body, headers = { 'Content-Type': 'application/json' };
+
+            if (provider === 'google') {
+                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
+                body = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: projectContent }] }], generationConfig: { temperature: 0.1 } };
+            } else if (provider === 'openai' || provider === 'openai-o1') {
+                apiUrl = 'https://api.openai.com/v1/chat/completions';
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = { model: provider === 'openai-o1' ? 'o1-preview' : 'gpt-4o', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: projectContent }] };
+            }
+
+            const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+            const data = await response.json();
+            
+            lastScanResult = provider === 'google' ? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
+            outputDiv.textContent = lastScanResult;
+            
+            parseFindings(lastScanResult);
+            saveSession();
+        } catch (err) { outputDiv.innerText = "Error: " + err.message; }
+        finally { 
+            btn.disabled = false; 
+            document.getElementById('statusIndicator').innerText = "AUDIT COMPLETE";
+        }
+    }
+
+    function parseFindings(text) {
+        document.getElementById('dashboard').style.display = 'block';
+        const tbody = document.getElementById('triageBody');
+        tbody.innerHTML = "";
+
+        const regex = /FINDING:\s*\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s*-\s*(.*?)\nCOMPONENT:\s*(.*?)\n/gi;
+        let match;
+        const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+
+        while ((match = regex.exec(text)) !== null) {
+            const sev = match[1].toUpperCase();
+            counts[sev]++;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="checkbox" onchange="saveSession()"></td>
+                <td><span class="badge bg-${sev.toLowerCase().substring(0,4)}">${sev}</span></td>
+                <td>${match[2]}</td>
+                <td style="font-family:monospace; font-size:11px;">${match[3]}</td>
+            `;
+            tbody.appendChild(row);
+        }
+        updateChart(counts);
+    }
+
+    function updateChart(c) {
+        if (riskChart) riskChart.destroy();
+        riskChart = new Chart(document.getElementById('riskChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{ data: [c.CRITICAL, c.HIGH, c.MEDIUM, c.LOW], backgroundColor: ['#de350b', '#ff8b00', '#ffc400', '#00875a'] }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFont("courier", "bold").text("SECURESCAN PRO REPORT", 10, 10);
+        doc.setFont("courier", "normal").setFontSize(8);
+        const splitText = doc.splitTextToSize(lastScanResult, 180);
+        doc.text(splitText, 10, 20);
+        doc.save("Audit_Report.pdf");
+    }
+
+    function copyToClipboard() { navigator.clipboard.writeText(lastScanResult); alert("Copied!"); }
+</script>
+</body>
+</html>
