@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureScan Pro | v6.0 Perfect Score</title>
+    <title>SecureScan Pro | v6.1 Ultimate</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -19,18 +19,19 @@
         .col { flex: 1; }
         
         /* GPA Card Styling */
-        .gpa-card { background: #fafbfc; border-radius: 8px; padding: 20px; text-align: center; border: 2px solid #dfe1e6; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .gpa-card { background: #fafbfc; border-radius: 8px; padding: 20px; text-align: center; border: 2px solid #dfe1e6; height: 100%; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box; }
         .gpa-score { font-size: 3.5rem; font-weight: 800; margin: 0; color: var(--primary); line-height: 1; }
         .gpa-label { font-size: 0.75rem; font-weight: bold; color: #5e6c84; text-transform: uppercase; margin-bottom: 5px; }
         .gpa-status { font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
 
         label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.75rem; color: #5e6c84; text-transform: uppercase; }
         select, input { width: 100%; padding: 12px; border: 2px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; background: white; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; }
         
         .file-box { border: 2px dashed #dfe1e6; padding: 20px; text-align: center; border-radius: 8px; background: #fafbfc; transition: 0.3s; }
         
         #dashboard { display: none; margin-top: 2rem; animation: fadeIn 0.4s ease-out; }
-        .chart-container { height: 220px; margin-bottom: 1.5rem; }
+        .chart-container { height: 220px; margin-bottom: 1.5rem; position: relative; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th { text-align: left; background: #f4f5f7; padding: 12px; font-size: 0.85rem; border-radius: 4px; }
@@ -42,9 +43,12 @@
 
         button { background: var(--primary); color: white; border: none; padding: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%; }
         button:hover { filter: brightness(1.1); transform: translateY(-1px); }
-        button.secondary { background: #ebecf0; color: #172b4d; margin-top: 10px; border: 1px solid #ccc; }
+        button:disabled { background: #b3bac5; cursor: not-allowed; transform: none; }
+        button.secondary { background: #ebecf0; color: #172b4d; margin-top: 10px; border: 1px solid #ccc; padding: 12px; }
         
-        #output { margin-top: 2rem; padding: 20px; background: #1a1a1a; color: #d4d4d4; border-radius: 8px; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.5; border-left: 5px solid var(--primary); }
+        #output { margin-top: 2rem; padding: 20px; background: #1a1a1a; color: #d4d4d4; border-radius: 8px; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; border-left: 5px solid var(--primary); max-height: 500px; overflow-y: auto; }
+        .error-msg { color: #ff4d4f; font-weight: bold; display: block; margin-bottom: 10px; }
+        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -52,32 +56,32 @@
 
 <div class="container">
     <div class="header">
-        <h2>🛡️ SecureScan Pro <small style="font-size: 0.4em; opacity: 0.6; margin-left: 10px;">ULTIMATE v6.0</small></h2>
+        <h2>🛡️ SecureScan Pro <small style="font-size: 0.4em; opacity: 0.6; margin-left: 10px;">v6.1 Bulletproof</small></h2>
         <div id="statusIndicator" style="font-size: 0.8rem; font-weight: bold; color: var(--primary);">SYSTEM: READY</div>
     </div>
 
     <div class="row">
         <div class="col">
-            <label>Intelligence Engine</label>
+            <label>AI Intelligence Engine</label>
             <select id="provider" onchange="saveSession()">
-                <option value="google">Gemini 1.5 Pro (Multimodal Reasoning)</option>
-                <option value="openai">GPT-4o (Peak Logical Analysis)</option>
-                <option value="anthropic">Claude 3.7 Sonnet (Advanced SAST)</option>
-                <option value="openai-o1">GPT-o1 (Complex Architecture Scans)</option>
+                <option value="openai">OpenAI (GPT-4o) - Recommended</option>
+                <option value="google">Google (Gemini 1.5 Pro) - Best Context</option>
+                <option value="anthropic">Anthropic (Claude 3.7 Sonnet)</option>
+                <option value="openai-o1">OpenAI (o1-preview) - Deep Logic</option>
             </select>
         </div>
         <div class="col" style="flex: 2;">
-            <label>API Auth Token</label>
-            <input type="password" id="apiKey" placeholder="Paste token..." oninput="saveSession()">
+            <label>Provider API Key</label>
+            <input type="password" id="apiKey" placeholder="Paste your API token here..." oninput="saveSession()">
         </div>
     </div>
 
     <div class="file-box">
-        <button class="secondary" style="width: auto; padding: 8px 15px;" onclick="selectFolder()">📁 Index Project Directory</button>
-        <div id="fileList" style="margin-top: 8px; font-size: 0.75rem; color: #888;">No directory indexed. Files remain in local buffer.</div>
+        <button class="secondary" style="width: auto; padding: 10px 20px;" onclick="selectFolder()">📁 Map Project Directory</button>
+        <div id="fileList" style="margin-top: 12px; font-size: 0.8rem; color: #5e6c84; font-weight: bold;">No files mapped to local memory.</div>
     </div>
 
-    <button id="scanBtn" style="margin-top: 1.5rem; font-size: 1.1rem;" onclick="runProjectScan()">🚀 RUN PERFECT SCORE AUDIT</button>
+    <button id="scanBtn" style="margin-top: 1.5rem; font-size: 1.1rem;" onclick="runProjectScan()">🚀 INITIATE SECURITY AUDIT</button>
 
     <div id="dashboard">
         <div class="row">
@@ -89,32 +93,34 @@
                 </div>
             </div>
             <div class="col" style="flex: 1.4;">
-                <label>Risk Breakdown</label>
+                <label>Vulnerability Density</label>
                 <div class="chart-container"><canvas id="riskChart"></canvas></div>
             </div>
             <div class="col">
-                <label>Audit Controls</label>
-                <button onclick="downloadPDF()" style="background: var(--low);">📥 Export PDF Audit</button>
-                <button class="secondary" onclick="copyToClipboard()">📋 Copy Raw Results</button>
-                <button class="secondary" onclick="clearSession()" style="color: var(--critical);">🗑️ Clear Memory</button>
+                <label>Audit Actions</label>
+                <button onclick="downloadPDF()" style="background: var(--low); padding: 12px;">📥 Export PDF Report</button>
+                <button class="secondary" onclick="copyToClipboard()">📋 Copy Raw Output</button>
+                <button class="secondary" onclick="clearSession()" style="color: var(--critical);">🗑️ Purge Session</button>
             </div>
         </div>
 
-        <label>Verification & Triage Tracker</label>
-        <table>
-            <thead>
-                <tr>
-                    <th width="50">Fix</th>
-                    <th width="100">Level</th>
-                    <th>Vulnerability Finding</th>
-                    <th>Source Component</th>
-                </tr>
-            </thead>
-            <tbody id="triageBody"></tbody>
-        </table>
+        <div style="margin-top: 2rem;">
+            <label>Live Triage & Remediation Tracker</label>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="40">Fix</th>
+                        <th width="90">Severity</th>
+                        <th>Vulnerability Identity</th>
+                        <th>Source Component</th>
+                    </tr>
+                </thead>
+                <tbody id="triageBody"></tbody>
+            </table>
+        </div>
     </div>
 
-    <div id="output">System console ready for initialization...</div>
+    <div id="output">Console Output will appear here. Awaiting instructions...</div>
 </div>
 
 <script>
@@ -122,7 +128,7 @@
     let lastScanResult = "";
     let riskChart = null;
 
-    // --- SESSION OPS ---
+    // --- SESSION MANAGEMENT ---
     function saveSession() {
         const data = {
             key: document.getElementById('apiKey').value,
@@ -130,15 +136,15 @@
             res: lastScanResult,
             states: Array.from(document.querySelectorAll('#triageBody input')).map(i => i.checked)
         };
-        localStorage.setItem('secureScanV6', JSON.stringify(data));
+        localStorage.setItem('secureScanV6_1', JSON.stringify(data));
     }
 
     function loadSession() {
-        const saved = localStorage.getItem('secureScanV6');
+        const saved = localStorage.getItem('secureScanV6_1');
         if (!saved) return;
         const data = JSON.parse(saved);
         document.getElementById('apiKey').value = data.key || "";
-        document.getElementById('provider').value = data.mod || "google";
+        document.getElementById('provider').value = data.mod || "openai";
         if (data.res) {
             lastScanResult = data.res;
             document.getElementById('output').textContent = lastScanResult;
@@ -148,148 +154,278 @@
         }
     }
 
-    function clearSession() { if(confirm("Purge all data?")) { localStorage.removeItem('secureScanV6'); location.reload(); } }
+    function clearSession() { 
+        if(confirm("Erase all API keys and scan results from your browser?")) { 
+            localStorage.removeItem('secureScanV6_1'); 
+            location.reload(); 
+        } 
+    }
 
-    // --- SCAN LOGIC ---
+    // --- FILE SYSTEM API ---
     async function selectFolder() {
         try {
             const dirHandle = await window.showDirectoryPicker();
             projectContent = "";
-            document.getElementById('fileList').innerText = "Reading project map...";
-            await readDirectory(dirHandle, "");
-            document.getElementById('fileList').innerHTML = `<b style="color:var(--low)">READY: Project mapped to memory.</b>`;
-        } catch (err) { if(err.name !== 'AbortError') alert(err.message); }
-    }
-
-    async function readDirectory(handle, path) {
-        const EXCLUDED = ['node_modules', '.git', 'dist', 'build', '.env', 'venv'];
-        for await (const entry of handle.values()) {
-            if (EXCLUDED.includes(entry.name)) continue;
-            const fullPath = path + entry.name;
-            if (entry.kind === 'file') {
-                const file = await entry.getFile();
-                const text = await file.text();
-                projectContent += `\n[PATH: ${fullPath}]\n${text}\n[EOF]\n`;
-            } else { await readDirectory(entry, fullPath + "/"); }
+            document.getElementById('fileList').innerText = "Indexing files...";
+            let fileCount = 0;
+            fileCount = await readDirectory(dirHandle, "", fileCount);
+            document.getElementById('fileList').innerHTML = `<span style="color:var(--low)">✅ Successfully indexed ${fileCount} files into secure memory buffer.</span>`;
+        } catch (err) { 
+            if(err.name !== 'AbortError') alert("File Access Error: " + err.message); 
         }
     }
 
+    async function readDirectory(handle, path, fileCount) {
+        const EXCLUDED = ['node_modules', '.git', 'dist', 'build', '.env', 'venv', '__pycache__', '.idea', '.vscode'];
+        const INCLUDED_EXTS = /\.(js|ts|py|java|go|rb|php|cs|cpp|c|h|html|css|sql|json|yml|yaml|xml|sh)$/i;
+
+        for await (const entry of handle.values()) {
+            if (EXCLUDED.includes(entry.name)) continue;
+            const fullPath = path + entry.name;
+            
+            if (entry.kind === 'file') {
+                if (INCLUDED_EXTS.test(entry.name)) {
+                    const file = await entry.getFile();
+                    const text = await file.text();
+                    projectContent += `\n[FILE: ${fullPath}]\n${text}\n[EOF]\n`;
+                    fileCount++;
+                }
+            } else if (entry.kind === 'directory') { 
+                fileCount = await readDirectory(entry, fullPath + "/", fileCount); 
+            }
+        }
+        return fileCount;
+    }
+
+    // --- AI API INTEGRATION ---
     async function runProjectScan() {
         const provider = document.getElementById('provider').value;
         const apiKey = document.getElementById('apiKey').value.trim();
         const outputDiv = document.getElementById('output');
         const btn = document.getElementById('scanBtn');
+        const statusInd = document.getElementById('statusIndicator');
 
-        if (!apiKey || !projectContent) return alert("Audit Error: API Key or Directory missing.");
+        if (!apiKey) return alert("❌ Missing API Key. Please provide a valid token.");
+        if (!projectContent) return alert("❌ No Code Loaded. Please map a project directory first.");
 
         btn.disabled = true;
-        document.getElementById('statusIndicator').innerText = "AUDIT IN PROGRESS...";
-        outputDiv.innerText = "Analyzing architecture... Running Self-Critique Agent...";
+        statusInd.innerText = "AUDIT IN PROGRESS... (This may take up to 60 seconds)";
+        statusInd.style.color = "var(--high)";
+        outputDiv.innerHTML = "Establishing secure connection to AI Engine...<br>Performing Deep Source-to-Sink Analysis...";
 
-        const systemPrompt = `### IDENTITY
-        You are "SecureScan Pro Agent," a Senior Cyber Architect. 
+        const systemPrompt = `You are "SecureScan Pro Agent," a strict, Senior Cyber Architect performing SAST.
 
-        ### ANALYSIS PROTOCOL (10/10 LOGIC)
-        1. SKEPTICISM: For every finding, attempt to prove a developer used a mitigation you missed. Only report if 100% verified.
-        2. DATA FLOW: Trace inputs from source to sink.
-        3. GPA CALC: Start at 4.0. Subtract 1.0 for Critical, 0.5 for High, 0.2 for Med. Add 0.2 for strong defensive patterns (CSRF, CSP, Sanitization). Minimum 0.0.
+        YOUR RULES:
+        1. SKEPTICISM: Actively try to prove a finding is a False Positive. Only report it if it's a true risk.
+        2. GPA CALCULATION: Start at 4.0. Subtract 1.0 (Critical), 0.5 (High), 0.2 (Medium). Add 0.2 for strong defensive logic found. Floor is 0.0.
+        3. STRICT OUTPUT FORMAT. You MUST use exactly this structure for every finding:
 
-        ### FORMATTING
         [GPA_SCORE: X.X]
-        FINDING: [SEVERITY] - Name
-        COMPONENT: File Path
-        DESCRIPTION: Technical detail.
-        REMEDIATION: Specific code-level fix.
+        
+        FINDING: [SEVERITY] - Vulnerability Title
+        COMPONENT: Relative File Path
+        DESCRIPTION: Explain the exact attack vector.
+        REMEDIATION: Provide the specific code to fix it.
         ---
-        Use [CRITICAL], [HIGH], [MEDIUM], [LOW].`;
+        Valid Severities: [CRITICAL], [HIGH], [MEDIUM], [LOW].`;
 
         try {
-            let apiUrl, body, headers = { 'Content-Type': 'application/json' };
+            let apiUrl = "";
+            let body = {};
+            let headers = { 'Content-Type': 'application/json' };
 
-            if (provider === 'google') {
+            // 1. ANTHROPIC LOGIC
+            if (provider === 'anthropic') {
+                apiUrl = 'https://api.anthropic.com/v1/messages';
+                headers['x-api-key'] = apiKey;
+                headers['anthropic-version'] = '2023-06-01';
+                headers['anthropic-dangerous-direct-browser-access'] = 'true';
+                body = {
+                    model: 'claude-3-7-sonnet-20250219',
+                    max_tokens: 4096,
+                    temperature: 0.1,
+                    system: systemPrompt,
+                    messages: [{ role: 'user', content: "Analyze this repository:\n\n" + projectContent }]
+                };
+            } 
+            // 2. GOOGLE GEMINI LOGIC
+            else if (provider === 'google') {
                 apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-                body = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: projectContent }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 8192 } };
-            } else {
+                body = {
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: [{ parts: [{ text: projectContent }] }],
+                    generationConfig: { temperature: 0.1, maxOutputTokens: 8192 }
+                };
+            } 
+            // 3. OPENAI LOGIC (Handles both gpt-4o and o1-preview)
+            else {
                 apiUrl = 'https://api.openai.com/v1/chat/completions';
                 headers['Authorization'] = `Bearer ${apiKey}`;
-                const modName = provider === 'openai-o1' ? 'o1-preview' : (provider === 'anthropic' ? 'claude-3-7-sonnet-20250219' : 'gpt-4o');
-                body = { model: modName, temperature: 0.1, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: projectContent }] };
+                
+                if (provider === 'openai-o1') {
+                    // o1 models don't support system prompts or temperature parameters in standard completion endpoints yet
+                    body = {
+                        model: 'o1-preview',
+                        messages: [
+                            { role: 'user', content: systemPrompt + "\n\nAnalyze this repository:\n\n" + projectContent }
+                        ]
+                    };
+                } else {
+                    body = {
+                        model: 'gpt-4o',
+                        temperature: 0.1,
+                        messages: [
+                            { role: 'system', content: systemPrompt },
+                            { role: 'user', content: projectContent }
+                        ]
+                    };
+                }
             }
 
-            const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
+            // Execute Request
+            const response = await fetch(apiUrl, { method: 'POST', headers: headers, body: JSON.stringify(body) });
             const data = await response.json();
-            
-            lastScanResult = provider === 'google' ? data.candidates[0].content.parts[0].text : data.choices[0].message.content;
+
+            // --- BULLETPROOF ERROR HANDLING ---
+            if (!response.ok) {
+                let errorMsg = data.error?.message || "Unknown API Error";
+                throw new Error(`HTTP ${response.status}: ${errorMsg}`);
+            }
+
+            // --- BULLETPROOF PAYLOAD EXTRACTION ---
+            if (provider === 'google') {
+                if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+                    throw new Error("Gemini returned an empty response. Ensure your code doesn't violate Google's Safety Guidelines.");
+                }
+                lastScanResult = data.candidates[0].content.parts[0].text;
+            } else if (provider === 'anthropic') {
+                if (!data.content || !data.content[0]) throw new Error("Claude returned an empty array.");
+                lastScanResult = data.content[0].text;
+            } else {
+                if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+                    throw new Error("OpenAI returned an empty choice array. Check your API usage limits.");
+                }
+                lastScanResult = data.choices[0].message.content;
+            }
+
+            // Success Execution
             outputDiv.textContent = lastScanResult;
-            
             parseFindings(lastScanResult);
             saveSession();
-        } catch (err) { outputDiv.innerText = "Audit Failed: " + err.message; }
-        finally { 
+
+            statusInd.innerText = "SYSTEM: READY (AUDIT SUCCESS)";
+            statusInd.style.color = "var(--low)";
+
+        } catch (err) { 
+            // Graceful Error Rendering
+            outputDiv.innerHTML = `<span class="error-msg">🛑 AUDIT FAILED</span>${err.message}<br><br><small>Troubleshooting:<br>1. Check if your API key has credits/billing enabled.<br>2. Ensure the selected model is available on your account.<br>3. If using Anthropic, ensure CORS browser access is allowed on your tier.</small>`;
+            console.error("SecureScan Debug Trace:", err);
+            statusInd.innerText = "SYSTEM: ERROR";
+            statusInd.style.color = "var(--critical)";
+        } finally { 
             btn.disabled = false; 
-            document.getElementById('statusIndicator').innerText = "AUDIT COMPLETE";
         }
     }
 
+    // --- DATA PARSING & UI UPDATES ---
     function parseFindings(text) {
         document.getElementById('dashboard').style.display = 'block';
         const tbody = document.getElementById('triageBody');
         tbody.innerHTML = "";
 
-        // GPA Extract
-        const gpaMatch = text.match(/\[GPA_SCORE:\s*([\d.]+)\]/);
+        // 1. GPA Extraction
+        const gpaMatch = text.match(/\[GPA_SCORE:\s*([\d.]+)\]/i);
         const gpa = gpaMatch ? parseFloat(gpaMatch[1]) : 0.0;
         const scoreElem = document.getElementById('gpaScore');
         scoreElem.innerText = gpa.toFixed(1);
         
         const statusElem = document.getElementById('gpaStatus');
         if(gpa >= 3.5) { statusElem.innerText = "CERTIFIED SECURE"; statusElem.style.color = "var(--low)"; }
-        else if(gpa >= 2.0) { statusElem.innerText = "WARNING: VULNERABLE"; statusElem.style.color = "var(--high)"; }
-        else { statusElem.innerText = "CRITICAL RISK"; statusElem.style.color = "var(--critical)"; }
+        else if(gpa >= 2.0) { statusElem.innerText = "VULNERABLE (WARNING)"; statusElem.style.color = "var(--high)"; }
+        else { statusElem.innerText = "CRITICAL ARCHITECTURE RISK"; statusElem.style.color = "var(--critical)"; }
 
-        // Finding Extract
-        const regex = /FINDING:\s*\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s*-\s*(.*?)\nCOMPONENT:\s*(.*?)\n/gi;
+        // 2. Vulnerability Extraction
+        const regex = /FINDING:\s*\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s*-\s*(.*?)\nCOMPONENT:\s*(.*?)(?=\nFINDING|\n---|\n\[|$)/gis;
         let match;
-        const c = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+        const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
 
         while ((match = regex.exec(text)) !== null) {
-            const sev = match[1].toUpperCase();
-            c[sev]++;
+            const severity = match[1].toUpperCase();
+            if (counts[severity] !== undefined) counts[severity]++;
+            
+            const title = match[2].trim();
+            const component = match[3].split('\n')[0].trim(); // Take only the first line of the component section
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="checkbox" onchange="saveSession()"></td>
-                <td><span class="badge bg-${sev.toLowerCase().substring(0,4)}">${sev}</span></td>
-                <td>${match[2]}</td>
-                <td style="font-family:monospace; font-size:11px;">${match[3]}</td>
+                <td><span class="badge bg-${severity.toLowerCase().substring(0,4)}">${severity}</span></td>
+                <td><strong>${title}</strong></td>
+                <td style="font-family: 'Consolas', monospace; font-size: 11px; color: #5e6c84;">${component}</td>
             `;
             tbody.appendChild(row);
         }
-        updateChart(c);
+        
+        // Render Chart
+        updateChart(counts);
     }
 
-    function updateChart(c) {
+    function updateChart(counts) {
         if (riskChart) riskChart.destroy();
-        riskChart = new Chart(document.getElementById('riskChart'), {
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        riskChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Crit', 'High', 'Med', 'Low'],
-                datasets: [{ data: [c.CRITICAL, c.HIGH, c.MEDIUM, c.LOW], backgroundColor: ['#de350b', '#ff8b00', '#ffc400', '#00875a'] }]
+                labels: ['Critical', 'High', 'Medium', 'Low'],
+                datasets: [{ 
+                    data: [counts.CRITICAL, counts.HIGH, counts.MEDIUM, counts.LOW], 
+                    backgroundColor: ['#de350b', '#ff8b00', '#ffc400', '#00875a'],
+                    borderRadius: 4
+                }]
             },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+            options: { 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } } }
+            }
         });
     }
 
+    // --- EXPORT FUNCTIONS ---
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFont("courier", "bold").text("SECURESCAN PRO: ARCHITECTURAL AUDIT", 10, 15);
-        doc.setFont("courier", "normal").setFontSize(8);
+        
+        doc.setFont("courier", "bold");
+        doc.setFontSize(14);
+        doc.text("SECURESCAN PRO: SAST AUDIT REPORT", 10, 15);
+        
+        doc.setFontSize(10);
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 10, 22);
+        
+        doc.setFont("courier", "normal");
+        doc.setFontSize(9);
+        
         const splitText = doc.splitTextToSize(lastScanResult, 180);
-        doc.text(splitText, 10, 25);
-        doc.save(`Audit_Report_${new Date().getTime()}.pdf`);
+        let yPos = 35;
+        
+        splitText.forEach(line => {
+            if (yPos > 280) {
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.text(line, 10, yPos);
+            yPos += 5;
+        });
+        
+        doc.save(`SecureScan_Report_${new Date().getTime()}.pdf`);
     }
 
-    function copyToClipboard() { navigator.clipboard.writeText(lastScanResult); alert("Report copied to clipboard."); }
+    function copyToClipboard() { 
+        navigator.clipboard.writeText(lastScanResult)
+            .then(() => alert("Audit results successfully copied to clipboard."))
+            .catch(err => alert("Failed to copy text: ", err));
+    }
 </script>
 </body>
 </html>
