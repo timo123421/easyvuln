@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecureScan Pro | v5.0 Persistence Suite</title>
+    <title>SecureScan Pro | v6.0 Perfect Score</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -11,24 +11,29 @@
             --primary: #0052cc; --bg: #f4f5f7; --text: #172b4d;
             --critical: #de350b; --high: #ff8b00; --medium: #ffc400; --low: #00875a;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
         .row { display: flex; gap: 20px; margin-bottom: 1.5rem; }
         .col { flex: 1; }
         
+        /* GPA Card Styling */
+        .gpa-card { background: #fafbfc; border-radius: 8px; padding: 20px; text-align: center; border: 2px solid #dfe1e6; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+        .gpa-score { font-size: 3.5rem; font-weight: 800; margin: 0; color: var(--primary); line-height: 1; }
+        .gpa-label { font-size: 0.75rem; font-weight: bold; color: #5e6c84; text-transform: uppercase; margin-bottom: 5px; }
+        .gpa-status { font-weight: bold; margin-top: 10px; font-size: 0.9rem; }
+
         label { display: block; margin-bottom: 0.5rem; font-weight: bold; font-size: 0.75rem; color: #5e6c84; text-transform: uppercase; }
         select, input { width: 100%; padding: 12px; border: 2px solid #dfe1e6; border-radius: 6px; box-sizing: border-box; background: white; }
         
         .file-box { border: 2px dashed #dfe1e6; padding: 20px; text-align: center; border-radius: 8px; background: #fafbfc; transition: 0.3s; }
-        .file-box:hover { border-color: var(--primary); }
-
-        #dashboard { display: none; margin-top: 2rem; }
+        
+        #dashboard { display: none; margin-top: 2rem; animation: fadeIn 0.4s ease-out; }
         .chart-container { height: 220px; margin-bottom: 1.5rem; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; background: #f4f5f7; padding: 12px; font-size: 0.85rem; }
+        th { text-align: left; background: #f4f5f7; padding: 12px; font-size: 0.85rem; border-radius: 4px; }
         td { padding: 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
         
         .badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 0.7rem; }
@@ -40,141 +45,131 @@
         button.secondary { background: #ebecf0; color: #172b4d; margin-top: 10px; border: 1px solid #ccc; }
         
         #output { margin-top: 2rem; padding: 20px; background: #1a1a1a; color: #d4d4d4; border-radius: 8px; white-space: pre-wrap; font-family: 'Consolas', monospace; font-size: 12px; line-height: 1.5; border-left: 5px solid var(--primary); }
-        .save-toast { position: fixed; bottom: 20px; right: 20px; background: var(--low); color: white; padding: 10px 20px; border-radius: 5px; display: none; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body onload="loadSession()">
 
 <div class="container">
     <div class="header">
-        <h2>🛡️ SecureScan Pro <small style="font-size: 0.5em; opacity: 0.6;">v5.0 Persistence</small></h2>
-        <div id="statusIndicator" style="font-size: 0.8rem; font-weight: bold;">STANDBY</div>
+        <h2>🛡️ SecureScan Pro <small style="font-size: 0.4em; opacity: 0.6; margin-left: 10px;">ULTIMATE v6.0</small></h2>
+        <div id="statusIndicator" style="font-size: 0.8rem; font-weight: bold; color: var(--primary);">SYSTEM: READY</div>
     </div>
 
     <div class="row">
         <div class="col">
-            <label>Intelligence Engine (2026 SOTA)</label>
+            <label>Intelligence Engine</label>
             <select id="provider" onchange="saveSession()">
-                <option value="google">Gemini 1.5 Pro (Extreme Context)</option>
-                <option value="openai">GPT-4o (Peak Logic)</option>
-                <option value="anthropic">Claude 3.7 Sonnet (Advanced Coding)</option>
-                <option value="openai-o1">GPT-o1 (Deep Reasoning)</option>
+                <option value="google">Gemini 1.5 Pro (Multimodal Reasoning)</option>
+                <option value="openai">GPT-4o (Peak Logical Analysis)</option>
+                <option value="anthropic">Claude 3.7 Sonnet (Advanced SAST)</option>
+                <option value="openai-o1">GPT-o1 (Complex Architecture Scans)</option>
             </select>
         </div>
         <div class="col" style="flex: 2;">
-            <label>Secure API Key</label>
-            <input type="password" id="apiKey" placeholder="Paste Key..." oninput="saveSession()">
+            <label>API Auth Token</label>
+            <input type="password" id="apiKey" placeholder="Paste token..." oninput="saveSession()">
         </div>
     </div>
 
     <div class="file-box">
         <button class="secondary" style="width: auto; padding: 8px 15px;" onclick="selectFolder()">📁 Index Project Directory</button>
-        <div id="fileList" style="margin-top: 8px; font-size: 0.75rem; color: #888;">No directory loaded into memory.</div>
+        <div id="fileList" style="margin-top: 8px; font-size: 0.75rem; color: #888;">No directory indexed. Files remain in local buffer.</div>
     </div>
 
-    <button id="scanBtn" style="margin-top: 1.5rem; font-size: 1.1rem;" onclick="runProjectScan()">🚀 RUN ENTERPRISE AUDIT</button>
+    <button id="scanBtn" style="margin-top: 1.5rem; font-size: 1.1rem;" onclick="runProjectScan()">🚀 RUN PERFECT SCORE AUDIT</button>
 
     <div id="dashboard">
         <div class="row">
-            <div class="col" style="flex: 1.5;">
-                <label>Vulnerability Matrix</label>
+            <div class="col" style="flex: 0.6;">
+                <div class="gpa-card">
+                    <p class="gpa-label">Security GPA</p>
+                    <p id="gpaScore" class="gpa-score">0.0</p>
+                    <p id="gpaStatus" class="gpa-status">UNRANKED</p>
+                </div>
+            </div>
+            <div class="col" style="flex: 1.4;">
+                <label>Risk Breakdown</label>
                 <div class="chart-container"><canvas id="riskChart"></canvas></div>
             </div>
             <div class="col">
-                <label>Report Management</label>
-                <button onclick="downloadPDF()" style="background: var(--low);">📥 Generate PDF Report</button>
+                <label>Audit Controls</label>
+                <button onclick="downloadPDF()" style="background: var(--low);">📥 Export PDF Audit</button>
                 <button class="secondary" onclick="copyToClipboard()">📋 Copy Raw Results</button>
-                <button class="secondary" onclick="clearSession()" style="color: var(--critical);">🗑️ Reset Session</button>
+                <button class="secondary" onclick="clearSession()" style="color: var(--critical);">🗑️ Clear Memory</button>
             </div>
         </div>
 
-        <div id="triageSection">
-            <label>Live Triage Workflow</label>
-            <table>
-                <thead>
-                    <tr>
-                        <th width="50">Fix</th>
-                        <th width="100">Level</th>
-                        <th>Vulnerability Name</th>
-                        <th>Component Path</th>
-                    </tr>
-                </thead>
-                <tbody id="triageBody"></tbody>
-            </table>
-        </div>
+        <label>Verification & Triage Tracker</label>
+        <table>
+            <thead>
+                <tr>
+                    <th width="50">Fix</th>
+                    <th width="100">Level</th>
+                    <th>Vulnerability Finding</th>
+                    <th>Source Component</th>
+                </tr>
+            </thead>
+            <tbody id="triageBody"></tbody>
+        </table>
     </div>
 
-    <div id="output">Console output is ready...</div>
+    <div id="output">System console ready for initialization...</div>
 </div>
-
-<div id="toast" class="save-toast">Session Auto-Saved</div>
 
 <script>
     let projectContent = "";
     let lastScanResult = "";
     let riskChart = null;
 
-    // --- SESSION MANAGEMENT ---
+    // --- SESSION OPS ---
     function saveSession() {
-        const sessionData = {
-            apiKey: document.getElementById('apiKey').value,
-            provider: document.getElementById('provider').value,
-            lastResult: lastScanResult,
-            triageStates: Array.from(document.querySelectorAll('#triageBody input')).map(i => i.checked)
+        const data = {
+            key: document.getElementById('apiKey').value,
+            mod: document.getElementById('provider').value,
+            res: lastScanResult,
+            states: Array.from(document.querySelectorAll('#triageBody input')).map(i => i.checked)
         };
-        localStorage.setItem('secureScanSession', JSON.stringify(sessionData));
-        showToast();
+        localStorage.setItem('secureScanV6', JSON.stringify(data));
     }
 
     function loadSession() {
-        const saved = localStorage.getItem('secureScanSession');
+        const saved = localStorage.getItem('secureScanV6');
         if (!saved) return;
         const data = JSON.parse(saved);
-        document.getElementById('apiKey').value = data.apiKey || "";
-        document.getElementById('provider').value = data.provider || "google";
-        if (data.lastResult) {
-            lastScanResult = data.lastResult;
+        document.getElementById('apiKey').value = data.key || "";
+        document.getElementById('provider').value = data.mod || "google";
+        if (data.res) {
+            lastScanResult = data.res;
             document.getElementById('output').textContent = lastScanResult;
             parseFindings(lastScanResult);
-            // Restore checkbox states
             const checks = document.querySelectorAll('#triageBody input');
-            data.triageStates.forEach((state, i) => { if(checks[i]) checks[i].checked = state; });
+            data.states.forEach((s, i) => { if(checks[i]) checks[i].checked = s; });
         }
     }
 
-    function clearSession() {
-        if(confirm("Clear all results and API keys?")) {
-            localStorage.removeItem('secureScanSession');
-            location.reload();
-        }
-    }
+    function clearSession() { if(confirm("Purge all data?")) { localStorage.removeItem('secureScanV6'); location.reload(); } }
 
-    function showToast() {
-        const t = document.getElementById('toast');
-        t.style.display = 'block';
-        setTimeout(() => t.style.display = 'none', 2000);
-    }
-
-    // --- CORE LOGIC ---
+    // --- SCAN LOGIC ---
     async function selectFolder() {
         try {
             const dirHandle = await window.showDirectoryPicker();
             projectContent = "";
-            document.getElementById('fileList').innerText = "Parsing project files...";
+            document.getElementById('fileList').innerText = "Reading project map...";
             await readDirectory(dirHandle, "");
-            document.getElementById('fileList').innerHTML = `<b style="color:var(--low)">SUCCESS: Project mapped and cached.</b>`;
+            document.getElementById('fileList').innerHTML = `<b style="color:var(--low)">READY: Project mapped to memory.</b>`;
         } catch (err) { if(err.name !== 'AbortError') alert(err.message); }
     }
 
-    async function readDirectory(dirHandle, path) {
-        const EXCLUDED = ['node_modules', '.git', 'dist', '.env'];
-        for await (const entry of dirHandle.values()) {
+    async function readDirectory(handle, path) {
+        const EXCLUDED = ['node_modules', '.git', 'dist', 'build', '.env', 'venv'];
+        for await (const entry of handle.values()) {
             if (EXCLUDED.includes(entry.name)) continue;
             const fullPath = path + entry.name;
             if (entry.kind === 'file') {
                 const file = await entry.getFile();
                 const text = await file.text();
-                projectContent += `\n[SOURCE: ${fullPath}]\n${text}\n[END]\n`;
+                projectContent += `\n[PATH: ${fullPath}]\n${text}\n[EOF]\n`;
             } else { await readDirectory(entry, fullPath + "/"); }
         }
     }
@@ -185,31 +180,40 @@
         const outputDiv = document.getElementById('output');
         const btn = document.getElementById('scanBtn');
 
-        if (!apiKey || !projectContent) return alert("Required: API Key + Mapped Folder.");
+        if (!apiKey || !projectContent) return alert("Audit Error: API Key or Directory missing.");
 
         btn.disabled = true;
-        document.getElementById('statusIndicator').innerText = "SCANNING...";
-        outputDiv.innerText = "Connecting to Engine... Simulating attack vectors...";
+        document.getElementById('statusIndicator').innerText = "AUDIT IN PROGRESS...";
+        outputDiv.innerText = "Analyzing architecture... Running Self-Critique Agent...";
 
-        const systemPrompt = `Role: Senior Cyber Security Architect. 
-        Perform Deep SAST. Use specific format for every finding:
-        FINDING: [SEVERITY] - Title
-        COMPONENT: File Path/Context
-        Description: Brief detail
+        const systemPrompt = `### IDENTITY
+        You are "SecureScan Pro Agent," a Senior Cyber Architect. 
+
+        ### ANALYSIS PROTOCOL (10/10 LOGIC)
+        1. SKEPTICISM: For every finding, attempt to prove a developer used a mitigation you missed. Only report if 100% verified.
+        2. DATA FLOW: Trace inputs from source to sink.
+        3. GPA CALC: Start at 4.0. Subtract 1.0 for Critical, 0.5 for High, 0.2 for Med. Add 0.2 for strong defensive patterns (CSRF, CSP, Sanitization). Minimum 0.0.
+
+        ### FORMATTING
+        [GPA_SCORE: X.X]
+        FINDING: [SEVERITY] - Name
+        COMPONENT: File Path
+        DESCRIPTION: Technical detail.
+        REMEDIATION: Specific code-level fix.
         ---
-        Severities: [CRITICAL], [HIGH], [MEDIUM], [LOW]. 
-        Check logic, secrets, and OWASP. Temperature: 0.1.`;
+        Use [CRITICAL], [HIGH], [MEDIUM], [LOW].`;
 
         try {
             let apiUrl, body, headers = { 'Content-Type': 'application/json' };
 
             if (provider === 'google') {
                 apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-                body = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: projectContent }] }], generationConfig: { temperature: 0.1 } };
-            } else if (provider === 'openai' || provider === 'openai-o1') {
+                body = { systemInstruction: { parts: [{ text: systemPrompt }] }, contents: [{ parts: [{ text: projectContent }] }], generationConfig: { temperature: 0.1, maxOutputTokens: 8192 } };
+            } else {
                 apiUrl = 'https://api.openai.com/v1/chat/completions';
                 headers['Authorization'] = `Bearer ${apiKey}`;
-                body = { model: provider === 'openai-o1' ? 'o1-preview' : 'gpt-4o', messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: projectContent }] };
+                const modName = provider === 'openai-o1' ? 'o1-preview' : (provider === 'anthropic' ? 'claude-3-7-sonnet-20250219' : 'gpt-4o');
+                body = { model: modName, temperature: 0.1, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: projectContent }] };
             }
 
             const response = await fetch(apiUrl, { method: 'POST', headers, body: JSON.stringify(body) });
@@ -220,7 +224,7 @@
             
             parseFindings(lastScanResult);
             saveSession();
-        } catch (err) { outputDiv.innerText = "Error: " + err.message; }
+        } catch (err) { outputDiv.innerText = "Audit Failed: " + err.message; }
         finally { 
             btn.disabled = false; 
             document.getElementById('statusIndicator').innerText = "AUDIT COMPLETE";
@@ -232,13 +236,25 @@
         const tbody = document.getElementById('triageBody');
         tbody.innerHTML = "";
 
+        // GPA Extract
+        const gpaMatch = text.match(/\[GPA_SCORE:\s*([\d.]+)\]/);
+        const gpa = gpaMatch ? parseFloat(gpaMatch[1]) : 0.0;
+        const scoreElem = document.getElementById('gpaScore');
+        scoreElem.innerText = gpa.toFixed(1);
+        
+        const statusElem = document.getElementById('gpaStatus');
+        if(gpa >= 3.5) { statusElem.innerText = "CERTIFIED SECURE"; statusElem.style.color = "var(--low)"; }
+        else if(gpa >= 2.0) { statusElem.innerText = "WARNING: VULNERABLE"; statusElem.style.color = "var(--high)"; }
+        else { statusElem.innerText = "CRITICAL RISK"; statusElem.style.color = "var(--critical)"; }
+
+        // Finding Extract
         const regex = /FINDING:\s*\[(CRITICAL|HIGH|MEDIUM|LOW)\]\s*-\s*(.*?)\nCOMPONENT:\s*(.*?)\n/gi;
         let match;
-        const counts = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+        const c = { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
 
         while ((match = regex.exec(text)) !== null) {
             const sev = match[1].toUpperCase();
-            counts[sev]++;
+            c[sev]++;
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="checkbox" onchange="saveSession()"></td>
@@ -248,7 +264,7 @@
             `;
             tbody.appendChild(row);
         }
-        updateChart(counts);
+        updateChart(c);
     }
 
     function updateChart(c) {
@@ -256,24 +272,24 @@
         riskChart = new Chart(document.getElementById('riskChart'), {
             type: 'bar',
             data: {
-                labels: ['Critical', 'High', 'Medium', 'Low'],
+                labels: ['Crit', 'High', 'Med', 'Low'],
                 datasets: [{ data: [c.CRITICAL, c.HIGH, c.MEDIUM, c.LOW], backgroundColor: ['#de350b', '#ff8b00', '#ffc400', '#00875a'] }]
             },
-            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
         });
     }
 
     function downloadPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFont("courier", "bold").text("SECURESCAN PRO REPORT", 10, 10);
+        doc.setFont("courier", "bold").text("SECURESCAN PRO: ARCHITECTURAL AUDIT", 10, 15);
         doc.setFont("courier", "normal").setFontSize(8);
         const splitText = doc.splitTextToSize(lastScanResult, 180);
-        doc.text(splitText, 10, 20);
-        doc.save("Audit_Report.pdf");
+        doc.text(splitText, 10, 25);
+        doc.save(`Audit_Report_${new Date().getTime()}.pdf`);
     }
 
-    function copyToClipboard() { navigator.clipboard.writeText(lastScanResult); alert("Copied!"); }
+    function copyToClipboard() { navigator.clipboard.writeText(lastScanResult); alert("Report copied to clipboard."); }
 </script>
 </body>
 </html>
